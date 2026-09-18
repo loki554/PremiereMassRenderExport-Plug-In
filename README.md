@@ -21,9 +21,7 @@ and an output folder, and every range is queued in Media Encoder as its own file
 - Can start the Media Encoder queue right away and remove jobs from it when they finish
 - Puts the sequence's In/Out points back the way they were once the jobs are queued
 - Remembers the preset, folder and options between sessions
-
-> [!NOTE]
-> The panel's interface is currently in Russian.
+- Uses the same interface language as Premiere Pro: English or Russian. Other languages fall back to English.
 
 ## Requirements
 
@@ -49,7 +47,7 @@ Both packages are signed, so you don't need to change any registry settings or t
 If the Creative Cloud desktop app is installed, run this in `cmd`:
 
 ```bat
-"C:\Program Files\Common Files\Adobe\Adobe Desktop Common\RemoteComponents\UPI\UnifiedPluginInstallerAgent\UnifiedPluginInstallerAgent.exe" /install "C:\path\to\MassMarkerExport-1.0.0.zxp"
+"C:\Program Files\Common Files\Adobe\Adobe Desktop Common\RemoteComponents\UPI\UnifiedPluginInstallerAgent\UnifiedPluginInstallerAgent.exe" /install "C:\path\to\MassMarkerExport-1.1.0.zxp"
 ```
 </details>
 
@@ -76,13 +74,13 @@ Remove the extension in your ZXP installer, or delete the `com.alexc.massmarkere
 1. **Mark the ranges.** Add a marker on the timeline (`M`) and give it a duration. You can Alt-drag its right edge,
    or double-click the marker and set **Duration**. Type the output file name in **Name**.
    Markers without a duration are ignored.
-2. **Load the markers.** Click **Обновить** (Refresh). The list also refreshes by itself whenever the panel gets focus.
+2. **Load the markers.** Click **Refresh**. The list also refreshes by itself whenever the panel gets focus.
    Untick any ranges you don't need, or filter them by marker color.
 3. **Choose a preset.** Your own presets are listed first. System presets come after them, grouped by format.
-   Use the search box, or click **Файл .epr…** to pick any preset file.
+   Use the search box, or click **.epr file…** to pick any preset file.
    Tip: in Media Encoder you can create a preset in *Preset Browser → + → Create Encoding Preset*.
-4. **Set the output folder** with **Обзор…** (Browse).
-5. Click **Отправить в Media Encoder** (Send to Media Encoder).
+4. **Set the output folder** with **Browse…**.
+5. Click **Send to Media Encoder**.
 
 ### File naming rules
 
@@ -119,12 +117,16 @@ In/Out points back. Queueing can take a few seconds per range, and a progress ba
 CSXS/manifest.xml         CEP extension manifest (the version lives here)
 index.html, css/          panel UI
 js/main.js                panel logic: markers, presets, file names, queueing
+js/i18n.js                UI strings (en, ru); picks the language from Premiere's UI locale
 jsx/host.jsx              ExtendScript: reads markers, talks to Media Encoder
 .debug                    remote debugging port (Chrome DevTools → http://localhost:8088)
 install.bat               dev install: copies the working tree and turns on PlayerDebugMode
 uninstall.bat             removes the dev install
 tools/build-release.ps1   builds the signed .zxp and .zip into dist/
 ```
+
+**Adding a UI language:** copy the `en` dictionary in `js/i18n.js`, translate the values and register it under
+the two-letter language code (`de`, `fr`, `ja`, …). The panel picks it up from Premiere's `appUILocale`.
 
 **Dev install:** run `install.bat` and restart Premiere Pro. After you change the code, run it again and reopen the panel.
 This installs an unsigned copy, so it turns on `PlayerDebugMode` for CSXS 9–12.
@@ -172,6 +174,8 @@ This installs an unsigned copy, so it turns on `PlayerDebugMode` for CSXS 9–12
 Запрещённые символы удаляются. Маркер без имени получает имя `<Секвенция>_<NN>`, а повторяющиеся
 имена нумеруются (`_2`, `_3`…). С опцией «Не перезаписывать» существующие файлы не затираются.
 Когда все задания поставлены в очередь, панель возвращает In/Out секвенции как было.
+
+Язык панели совпадает с языком Premiere Pro: русский или английский. Для остальных языков — английский.
 
 ### Для разработки
 

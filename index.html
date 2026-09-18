@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Mass Marker Export</title>
@@ -8,58 +8,59 @@
 <body>
   <section class="block">
     <div class="block-head">
-      <h2>Маркеры</h2>
+      <h2 data-i18n="markers.title">Markers</h2>
       <span id="seqName" class="muted"></span>
-      <button id="btnRefresh" class="btn-small" title="Перечитать маркеры активной секвенции">Обновить</button>
+      <button id="btnRefresh" class="btn-small" data-i18n="markers.refresh" data-i18n-title="markers.refreshTip">Refresh</button>
     </div>
     <div class="row">
-      <label for="colorFilter">Цвет:</label>
+      <label for="colorFilter" data-i18n="markers.color">Color:</label>
       <select id="colorFilter"></select>
-      <label class="check"><input type="checkbox" id="chkAll" checked> все</label>
+      <label class="check"><input type="checkbox" id="chkAll" checked> <span data-i18n="markers.all">all</span></label>
     </div>
     <div class="table-wrap">
       <table id="markerTable">
         <thead>
-          <tr><th></th><th>Имя файла</th><th>In</th><th>Длит.</th></tr>
+          <tr><th></th><th data-i18n="col.file">File name</th><th data-i18n="col.in">In</th><th data-i18n="col.duration">Dur.</th></tr>
         </thead>
         <tbody></tbody>
       </table>
-      <div id="emptyMsg" class="empty">Нет данных. Нажмите «Обновить».</div>
+      <div id="emptyMsg" class="empty" data-i18n="markers.noData">No data. Click "Refresh".</div>
     </div>
     <div id="markerSummary" class="muted small"></div>
   </section>
 
   <section class="block">
     <div class="block-head">
-      <h2>Пресет Media Encoder</h2>
-      <button id="btnReloadPresets" class="btn-small" title="Перечитать список пресетов">↻</button>
+      <h2 data-i18n="preset.title">Media Encoder preset</h2>
+      <button id="btnReloadPresets" class="btn-small" data-i18n-title="preset.reloadTip">↻</button>
     </div>
-    <input type="text" id="presetSearch" placeholder="Поиск пресета…">
+    <input type="text" id="presetSearch" data-i18n-placeholder="preset.search" placeholder="Search presets…">
     <select id="presetSelect" size="1"></select>
     <div class="row">
       <span id="presetPath" class="muted small ellipsis"></span>
-      <button id="btnBrowsePreset" class="btn-small">Файл .epr…</button>
+      <button id="btnBrowsePreset" class="btn-small" data-i18n="preset.browse">.epr file…</button>
     </div>
   </section>
 
   <section class="block">
-    <div class="block-head"><h2>Папка вывода</h2></div>
+    <div class="block-head"><h2 data-i18n="output.title">Output folder</h2></div>
     <div class="row">
       <input type="text" id="outputFolder" placeholder="C:\Renders\Project">
-      <button id="btnBrowseFolder" class="btn-small">Обзор…</button>
+      <button id="btnBrowseFolder" class="btn-small" data-i18n="output.browse">Browse…</button>
     </div>
   </section>
 
   <section class="block">
-    <label class="check"><input type="checkbox" id="chkStart" checked> Сразу запустить рендер в AME</label>
-    <label class="check"><input type="checkbox" id="chkRemove"> Удалять задания из очереди после завершения</label>
-    <label class="check"><input type="checkbox" id="chkNoOverwrite" checked> Не перезаписывать: добавлять суффикс, если файл уже есть</label>
+    <label class="check"><input type="checkbox" id="chkStart" checked> <span data-i18n="opt.start">Start rendering in Media Encoder right away</span></label>
+    <label class="check"><input type="checkbox" id="chkRemove"> <span data-i18n="opt.remove">Remove jobs from the queue when they finish</span></label>
+    <label class="check"><input type="checkbox" id="chkNoOverwrite" checked> <span data-i18n="opt.noOverwrite">Don't overwrite: add a suffix if the file already exists</span></label>
   </section>
 
-  <button id="btnExport" class="btn-primary">Отправить в Media Encoder</button>
+  <button id="btnExport" class="btn-primary" data-i18n="export.button">Send to Media Encoder</button>
   <div id="progress" class="progress hidden"><div id="progressBar"></div></div>
   <div id="log" class="log"></div>
 
+  <script src="js/i18n.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

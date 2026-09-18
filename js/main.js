@@ -13,16 +13,10 @@
 
     var STORAGE_PREFIX = 'mme.';
 
-    var MARKER_COLORS = [
-        { name: 'Зелёный', hex: '#3fbf4f' },
-        { name: 'Красный', hex: '#e04848' },
-        { name: 'Фиолетовый', hex: '#c35ad6' },
-        { name: 'Оранжевый', hex: '#f08c1c' },
-        { name: 'Жёлтый', hex: '#e6cf2a' },
-        { name: 'Белый', hex: '#f0f0f0' },
-        { name: 'Синий', hex: '#3c78ff' },
-        { name: 'Голубой', hex: '#2ec8d8' }
-    ];
+    var t = window.MME_I18N.t;
+
+    // Premiere marker color indices 0-7; names are looked up as `color.<index>`.
+    var MARKER_COLORS = ['#3fbf4f', '#e04848', '#c35ad6', '#f08c1c', '#e6cf2a', '#f0f0f0', '#3c78ff', '#2ec8d8'];
 
     var FORMAT_NAMES = {
         'H264': 'H.264', 'H26B': 'H.264 Blu-ray', 'HEVC': 'HEVC (H.265)', 'MooV': 'QuickTime',
@@ -81,11 +75,17 @@
                 try {
                     parsed = JSON.parse(res);
                 } catch (e) {
-                    parsed = { ok: false, error: 'Ошибка ExtendScript: ' + res };
+                    parsed = { ok: false, error: t('err.extendscript', { detail: res }) };
                 }
+                if (!parsed.ok && parsed.code) parsed.error = hostError(parsed);
                 resolve(parsed);
             });
         });
+    }
+
+    function hostError(res) {
+        var key = res.code === 'EXCEPTION' && res.line ? 'host.EXCEPTION_LINE' : 'host.' + res.code;
+        return t(key, { detail: res.detail, line: res.line });
     }
 
     function getSystemPath(type) {
@@ -163,9 +163,9 @@
             var base = sanitizeName(m.name);
             if (!m.name.trim()) {
                 base = seqBase + '_' + (i + 1 < 10 ? '0' : '') + (i + 1);
-                row.warnings.push('у маркера нет имени');
+                row.warnings.push(t('warn.noName'));
             } else if (base !== m.name.trim()) {
-                row.warnings.push('недопустимые символы удалены');
+                row.warnings.push(t('warn.invalidChars'));
                 if (!base) base = seqBase + '_' + (i + 1);
             }
 
@@ -174,7 +174,7 @@
                 var name = base;
                 var n = 2;
                 while (used[name.toLowerCase()]) name = base + '_' + (n++);
-                if (name !== base) row.warnings.push('повтор имени → ' + name);
+                if (name !== base) row.warnings.push(t('warn.duplicate', { name: name }));
                 used[name.toLowerCase()] = true;
                 row.fileName = name;
             } else {
@@ -214,23 +214,23 @@
             if (color) {
                 var dot = document.createElement('span');
                 dot.className = 'dot';
-                dot.style.background = color.hex;
-                dot.title = color.name;
+                dot.style.background = color;
+                dot.title = t('color.' + m.color);
                 tdSel.appendChild(dot);
             }
 
             var tdName = document.createElement('td');
             tdName.className = 'name';
             tdName.textContent = r.fileName + ext;
-            var tip = 'Маркер: ' + (m.name || '(без имени)');
+            var tip = t('tip.marker', { name: m.name || t('tip.unnamed') });
             if (r.warnings.length) tip += '\n⚠ ' + r.warnings.join('\n⚠ ');
-            if (m.comments) tip += '\nКомментарий: ' + m.comments;
+            if (m.comments) tip += '\n' + t('tip.comment', { text: m.comments });
             tdName.title = tip;
 
             var tdIn = document.createElement('td');
             tdIn.className = 'tc';
             tdIn.textContent = timecode(m.start, fps);
-            tdIn.title = 'Out: ' + timecode(m.end, fps);
+            tdIn.title = t('tip.out', { tc: timecode(m.end, fps) });
 
             var tdDur = document.createElement('td');
             tdDur.className = 'tc';
@@ -246,8 +246,8 @@
         el.emptyMsg.classList.toggle('hidden', visible.length > 0);
         if (!visible.length && state.sequence) {
             el.emptyMsg.textContent = state.sequence.markers.length
-                ? 'Нет маркеров выбранного цвета.'
-                : 'В секвенции нет маркеров с длительностью.';
+                ? t('markers.noneOfColor')
+                : t('markers.noneWithDuration');
         }
 
         var selected = rows.filter(function (r) { return r.checked; }).length;
@@ -255,13 +255,13 @@
 
         var summary = '';
         if (state.sequence) {
-            summary = 'К экспорту: ' + selected + ' из ' + state.sequence.markers.length;
+            summary = t('summary.selected', { n: selected, total: state.sequence.markers.length });
             if (state.sequence.skippedPointMarkers) {
-                summary += ' · пропущено точечных маркеров: ' + state.sequence.skippedPointMarkers;
+                summary += t('summary.skipped', { n: state.sequence.skippedPointMarkers });
             }
         }
         el.markerSummary.textContent = summary;
-        el.btnExport.textContent = 'Отправить в Media Encoder' + (selected ? ' (' + selected + ')' : '');
+        el.btnExport.textContent = selected ? t('export.buttonCount', { n: selected }) : t('export.button');
     }
 
     function renderColorFilter() {
@@ -273,13 +273,13 @@
         el.colorFilter.innerHTML = '';
         var optAll = document.createElement('option');
         optAll.value = 'all';
-        optAll.textContent = 'Все цвета';
+        optAll.textContent = t('markers.allColors');
         el.colorFilter.appendChild(optAll);
-        MARKER_COLORS.forEach(function (c, i) {
+        MARKER_COLORS.forEach(function (hex, i) {
             if (!counts[i] && String(i) !== current) return;
             var o = document.createElement('option');
             o.value = String(i);
-            o.textContent = c.name + ' (' + (counts[i] || 0) + ')';
+            o.textContent = t('color.' + i) + ' (' + (counts[i] || 0) + ')';
             el.colorFilter.appendChild(o);
         });
         el.colorFilter.value = current;
@@ -305,7 +305,7 @@
             el.seqName.title = res.data.sequenceName;
             renderColorFilter();
             renderMarkers();
-            if (!silent) log('Найдено отрезков: ' + res.data.markers.length + ' в «' + res.data.sequenceName + '»');
+            if (!silent) log(t('log.found', { n: res.data.markers.length, sequence: res.data.sequenceName }));
             if (!state.extension && getSelectedPresetPath()) updateExtension();
         });
     }
@@ -399,7 +399,7 @@
         var code = '';
         for (var i = 0; i + 1 < hex.length; i += 2) code += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
         code = code.trim();
-        return FORMAT_NAMES[code] || code || 'Другое';
+        return FORMAT_NAMES[code] || code || t('preset.formatOther');
     }
 
     function loadPresets() {
@@ -410,7 +410,7 @@
                 var name = readPresetName(file);
                 if (seenUser[name.toLowerCase()]) return; // newer AME version wins
                 seenUser[name.toLowerCase()] = true;
-                presets.push({ name: name, path: file, group: 'Мои пресеты' });
+                presets.push({ name: name, path: file, group: t('preset.groupUser') });
             });
         });
 
@@ -418,7 +418,7 @@
         var system = [];
         if (sysDir) {
             listFiles(sysDir, '.epr').forEach(function (file) {
-                system.push({ name: readPresetName(file), path: file, group: 'Системные · ' + formatGroup(sysDir, file) });
+                system.push({ name: readPresetName(file), path: file, group: t('preset.groupSystem', { format: formatGroup(sysDir, file) }) });
             });
         }
         system.sort(function (a, b) {
@@ -428,8 +428,8 @@
         state.presets = presets.concat(system);
 
         var userCount = presets.length;
-        log('Пресеты: своих ' + userCount + ', системных ' + system.length +
-            (sysDir ? '' : ' (папка системных пресетов AME не найдена)'), sysDir ? '' : 'warn');
+        log(t('log.presets', { user: userCount, system: system.length }) +
+            (sysDir ? '' : t('log.presetsNoSystem')), sysDir ? '' : 'warn');
     }
 
     function renderPresets() {
@@ -461,7 +461,7 @@
         if (!el.presetSelect.options.length) {
             var none = document.createElement('option');
             none.value = '';
-            none.textContent = 'Пресеты не найдены';
+            none.textContent = t('preset.none');
             el.presetSelect.appendChild(none);
         }
         if (found) el.presetSelect.value = selected;
@@ -498,11 +498,11 @@
         var initial = path.dirname(getSelectedPresetPath() || findUserPresetDirs()[0] || os.homedir());
         var file = '';
         if (window.cep && window.cep.fs && window.cep.fs.showOpenDialogEx) {
-            var r = window.cep.fs.showOpenDialogEx(false, false, 'Выберите пресет Media Encoder', initial, ['epr']);
+            var r = window.cep.fs.showOpenDialogEx(false, false, t('dialog.presetTitle'), initial, ['epr']);
             file = r && r.data && r.data[0];
             applyCustomPreset(file);
         } else {
-            callHost('selectPreset').then(function (res) { if (res.ok) applyCustomPreset(res.data); });
+            callHost('selectPreset', t('dialog.presetTitle'), t('dialog.presetFilter')).then(function (res) { if (res.ok) applyCustomPreset(res.data); });
         }
     }
 
@@ -510,7 +510,7 @@
         if (!file) return;
         var existing = state.presets.filter(function (p) { return p.path.toLowerCase() === file.toLowerCase(); })[0];
         if (!existing) {
-            state.customPreset = { name: readPresetName(file), path: file, group: 'Выбранный файл' };
+            state.customPreset = { name: readPresetName(file), path: file, group: t('preset.groupCustom') };
             save('customPreset', state.customPreset);
         }
         el.presetSearch.value = '';
@@ -526,11 +526,11 @@
     function browseFolder() {
         var initial = el.outputFolder.value || getSystemPath('myDocuments');
         if (window.cep && window.cep.fs && window.cep.fs.showOpenDialogEx) {
-            var r = window.cep.fs.showOpenDialogEx(false, true, 'Папка для сохранения файлов', initial);
+            var r = window.cep.fs.showOpenDialogEx(false, true, t('dialog.folderTitle'), initial);
             var dir = r && r.data && r.data[0];
             if (dir) setOutputFolder(dir);
         } else {
-            callHost('selectFolder', 'Папка для сохранения файлов').then(function (res) {
+            callHost('selectFolder', t('dialog.folderTitle')).then(function (res) {
                 if (res.ok && res.data) setOutputFolder(res.data);
             });
         }
@@ -559,17 +559,17 @@
         var presetPath = getSelectedPresetPath();
         var outDir = el.outputFolder.value.trim();
 
-        if (!state.sequence) { log('Сначала обновите список маркеров.', 'error'); return; }
+        if (!state.sequence) { log(t('err.refreshFirst'), 'error'); return; }
         var rows = buildRows().filter(function (r) { return r.checked; });
-        if (!rows.length) { log('Нет отмеченных отрезков для экспорта.', 'error'); return; }
-        if (!presetPath || !fs.existsSync(presetPath)) { log('Выберите существующий пресет (.epr).', 'error'); return; }
-        if (!outDir) { log('Укажите папку для сохранения.', 'error'); return; }
-        if (!path.isAbsolute(outDir)) { log('Путь к папке должен быть абсолютным.', 'error'); return; }
+        if (!rows.length) { log(t('err.nothingChecked'), 'error'); return; }
+        if (!presetPath || !fs.existsSync(presetPath)) { log(t('err.noPreset'), 'error'); return; }
+        if (!outDir) { log(t('err.noFolder'), 'error'); return; }
+        if (!path.isAbsolute(outDir)) { log(t('err.relativeFolder'), 'error'); return; }
 
         try {
             fs.mkdirSync(outDir, { recursive: true });
         } catch (e) {
-            log('Не удалось создать папку: ' + e.message, 'error');
+            log(t('err.mkdir', { detail: e.message }), 'error');
             return;
         }
         save('outputFolder', outDir);
@@ -581,10 +581,10 @@
         var queued = 0, failed = 0;
 
         setBusy(true);
-        log('Отправка ' + rows.length + ' отрезков в Media Encoder…');
+        log(t('log.sending', { n: rows.length }));
 
         updateExtension().then(function (ext) {
-            if (!ext) log('Не удалось определить расширение файла для пресета — AME подставит его сам.', 'warn');
+            if (!ext) log(t('log.noExtension'), 'warn');
             return callHost('beginBatch', outDir).then(function (res) {
                 if (!res.ok) throw new Error(res.error);
                 return ext;
@@ -619,14 +619,16 @@
             });
             return chain;
         }).catch(function (e) {
-            log('Ошибка: ' + (e && e.message ? e.message : e), 'error');
+            log(t('log.error', { detail: e && e.message ? e.message : e }), 'error');
         }).then(function () {
             return callHost('endBatch', startRender && queued > 0);
         }).then(function (res) {
             if (res && !res.ok) log(res.error, 'warn');
-            var msg = 'Готово: в очереди ' + queued + (failed ? ', с ошибкой ' + failed : '') + '.';
-            if (queued && startRender) msg += ' Рендер запущен в Media Encoder.';
-            else if (queued) msg += ' Запустите очередь в Media Encoder.';
+            var msg = failed
+                ? t('log.doneWithFailures', { queued: queued, failed: failed })
+                : t('log.done', { queued: queued });
+            if (queued && startRender) msg += t('log.renderStarted');
+            else if (queued) msg += t('log.startQueue');
             log(msg, failed ? 'warn' : 'ok');
             setBusy(false);
         });
@@ -673,10 +675,12 @@
     }
 
     function init() {
+        window.MME_I18N.apply(document);
         bind();
         el.outputFolder.value = load('outputFolder', '');
         state.customPreset = load('customPreset', null);
         if (state.customPreset && !fs.existsSync(state.customPreset.path)) state.customPreset = null;
+        if (state.customPreset) state.customPreset.group = t('preset.groupCustom');
         loadPresets();
         renderPresets();
         renderColorFilter();

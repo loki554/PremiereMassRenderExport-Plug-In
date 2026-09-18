@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0] - 2026-09-18
+
+### Added
+- The panel uses the same interface language as Premiere Pro (English and Russian; other languages fall back to English).
+
+### Changed
+- ExtendScript errors are returned as codes and translated in the panel.
+
 ## [1.0.0] - 2026-09-18
 
 First public release.
@@ -14,4 +22,5 @@ First public release.
 - The sequence's In/Out points are put back the way they were after queueing.
 - Signed `.zxp` and `.zip` release packages.
 
+[1.1.0]: https://github.com/loki554/PremiereMassRenderExport-Plug-In/releases/tag/v1.1.0
 [1.0.0]: https://github.com/loki554/PremiereMassRenderExport-Plug-In/releases/tag/v1.0.0

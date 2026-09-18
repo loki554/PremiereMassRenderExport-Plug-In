@@ -45,7 +45,10 @@ function mmeParse(str) {
 }
 
 function mmeOk(data) { return mmeStringify({ ok: true, data: data }); }
-function mmeErr(msg) { return mmeStringify({ ok: false, error: String(msg) }); }
+// Errors are returned as codes; the panel translates them into the UI language.
+function mmeErr(code, detail, line) {
+    return mmeStringify({ ok: false, code: code, detail: detail === undefined ? '' : String(detail), line: line || 0 });
+}
 
 function mmeMakeTime(ticks) {
     var t = new Time();
@@ -84,9 +87,9 @@ $._MME = {
 
     getMarkers: function () {
         try {
-            if (!app.project) return mmeErr('Нет открытого проекта.');
+            if (!app.project) return mmeErr('NO_PROJECT');
             var seq = app.project.activeSequence;
-            if (!seq) return mmeErr('Нет активной секвенции. Откройте секвенцию на таймлайне.');
+            if (!seq) return mmeErr('NO_SEQUENCE');
 
             var fps = 0;
             try { fps = TICKS_PER_SECOND / Number(seq.timebase); } catch (e) { }
@@ -128,39 +131,39 @@ $._MME = {
                 skippedPointMarkers: skipped
             });
         } catch (e) {
-            return mmeErr(e.toString() + (e.line ? ' (строка ' + e.line + ')' : ''));
+            return mmeErr('EXCEPTION', e.toString(), e.line);
         }
     },
 
     getExtension: function (presetPath) {
         try {
             var seq = app.project.activeSequence;
-            if (!seq) return mmeErr('Нет активной секвенции.');
+            if (!seq) return mmeErr('NO_SEQUENCE');
             var ext = seq.getExportFileExtension(presetPath);
             return mmeOk(ext ? String(ext).replace(/^\./, '') : '');
         } catch (e) {
-            return mmeErr(e.toString());
+            return mmeErr('EXCEPTION', e.toString(), e.line);
         }
     },
 
     selectFolder: function (title) {
-        var f = Folder.selectDialog(title || 'Папка для сохранения');
+        var f = Folder.selectDialog(title);
         return mmeOk(f ? f.fsName : '');
     },
 
-    selectPreset: function () {
-        var f = File.openDialog('Выберите пресет Media Encoder', 'Пресеты AME:*.epr');
+    selectPreset: function (title, filterName) {
+        var f = File.openDialog(title, filterName + ':*.epr');
         return mmeOk(f ? f.fsName : '');
     },
 
     beginBatch: function (outputFolder) {
         try {
             var seq = app.project.activeSequence;
-            if (!seq) return mmeErr('Нет активной секвенции.');
+            if (!seq) return mmeErr('NO_SEQUENCE');
 
             var folder = new Folder(outputFolder);
             if (!folder.exists && !folder.create()) {
-                return mmeErr('Не удалось создать папку: ' + outputFolder);
+                return mmeErr('MKDIR_FAILED', outputFolder);
             }
 
             app.encoder.launchEncoder();
@@ -172,7 +175,7 @@ $._MME = {
             };
             return mmeOk(true);
         } catch (e) {
-            return mmeErr(e.toString());
+            return mmeErr('EXCEPTION', e.toString(), e.line);
         }
     },
 
@@ -180,9 +183,9 @@ $._MME = {
         try {
             var a = mmeParse(argsJson);
             var seq = app.project.activeSequence;
-            if (!seq) return mmeErr('Нет активной секвенции.');
+            if (!seq) return mmeErr('NO_SEQUENCE');
             if ($._MME.batchState && seq.sequenceID !== $._MME.batchState.sequenceId) {
-                return mmeErr('Активная секвенция сменилась во время экспорта.');
+                return mmeErr('SEQUENCE_CHANGED');
             }
 
             mmeSetRange(seq, a.startTicks, a.endTicks);
@@ -194,10 +197,10 @@ $._MME = {
                 app.encoder.ENCODE_IN_TO_OUT,
                 a.removeOnCompletion ? 1 : 0
             );
-            if (!jobId || jobId === '0') return mmeErr('Media Encoder отклонил задание.');
+            if (!jobId || jobId === '0') return mmeErr('JOB_REJECTED');
             return mmeOk(String(jobId));
         } catch (e) {
-            return mmeErr(e.toString());
+            return mmeErr('EXCEPTION', e.toString(), e.line);
         }
     },
 
@@ -218,9 +221,9 @@ $._MME = {
         try {
             if (startRender) app.encoder.startBatch();
         } catch (e2) {
-            return mmeErr('Задания в очереди, но рендер не запустился: ' + e2.toString());
+            return mmeErr('START_FAILED', e2.toString());
         }
-        if (restoreError) return mmeErr('Не удалось восстановить In/Out секвенции: ' + restoreError);
+        if (restoreError) return mmeErr('RESTORE_FAILED', restoreError);
         return mmeOk(true);
     }
 };
