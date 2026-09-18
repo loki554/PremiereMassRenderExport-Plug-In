@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Mass Marker Export</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <section class="block">
+    <div class="block-head">
+      <h2>Маркеры</h2>
+      <span id="seqName" class="muted"></span>
+      <button id="btnRefresh" class="btn-small" title="Перечитать маркеры активной секвенции">Обновить</button>
+    </div>
+    <div class="row">
+      <label for="colorFilter">Цвет:</label>
+      <select id="colorFilter"></select>
+      <label class="check"><input type="checkbox" id="chkAll" checked> все</label>
+    </div>
+    <div class="table-wrap">
+      <table id="markerTable">
+        <thead>
+          <tr><th></th><th>Имя файла</th><th>In</th><th>Длит.</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="emptyMsg" class="empty">Нет данных. Нажмите «Обновить».</div>
+    </div>
+    <div id="markerSummary" class="muted small"></div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <h2>Пресет Media Encoder</h2>
+      <button id="btnReloadPresets" class="btn-small" title="Перечитать список пресетов">↻</button>
+    </div>
+    <input type="text" id="presetSearch" placeholder="Поиск пресета…">
+    <select id="presetSelect" size="1"></select>
+    <div class="row">
+      <span id="presetPath" class="muted small ellipsis"></span>
+      <button id="btnBrowsePreset" class="btn-small">Файл .epr…</button>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head"><h2>Папка вывода</h2></div>
+    <div class="row">
+      <input type="text" id="outputFolder" placeholder="C:\Renders\Project">
+      <button id="btnBrowseFolder" class="btn-small">Обзор…</button>
+    </div>
+  </section>
+
+  <section class="block">
+    <label class="check"><input type="checkbox" id="chkStart" checked> Сразу запустить рендер в AME</label>
+    <label class="check"><input type="checkbox" id="chkRemove"> Удалять задания из очереди после завершения</label>
+    <label class="check"><input type="checkbox" id="chkNoOverwrite" checked> Не перезаписывать: добавлять суффикс, если файл уже есть</label>
+  </section>
+
+  <button id="btnExport" class="btn-primary">Отправить в Media Encoder</button>
+  <div id="progress" class="progress hidden"><div id="progressBar"></div></div>
+  <div id="log" class="log"></div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
