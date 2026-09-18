@@ -6,13 +6,15 @@ set "EXT_ID=com.alexc.massmarkerexport"
 set "SRC=%~dp0"
 set "DEST=%APPDATA%\Adobe\CEP\extensions\%EXT_ID%"
 
+rem Установка для разработки. Пользователям — релиз с GitHub (см. README).
+
 echo Установка Mass Marker Export в:
 echo   %DEST%
 echo.
 
 robocopy "%SRC%." "%DEST%" /MIR /NFL /NDL /NJH /NJS /NP ^
-  /XF install.bat uninstall.bat README.md ^
-  /XD .git .claude >nul
+  /XF install.bat uninstall.bat README.md CHANGELOG.md .gitignore .gitattributes ^
+  /XD .git .claude tools dist >nul
 if %ERRORLEVEL% GEQ 8 (
   echo Ошибка копирования файлов ^(robocopy код %ERRORLEVEL%^).
   pause

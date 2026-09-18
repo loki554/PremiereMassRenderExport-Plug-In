@@ -1,0 +1,8 @@
+# Release build output
+dist/
+
+# Downloaded signing tool and certificates (never commit these)
+tools/bin/
+*.p12
+*.pfx
+.rnd
